@@ -14,14 +14,14 @@ from ...base import (
 )
 
 if TYPE_CHECKING:
-    from openai import OpenAI
-    from openai import AsyncOpenAI
+    from groq import Groq
+    from groq import AsyncGroq
 
 
-class OpenAIBatchProcess(BatchProcess):
-    """OpenAI Batch API implementation."""
+class GroqBatchProcess(BatchProcess):
+    """Groq Batch API implementation."""
 
-    def __init__(self, client: "OpenAI") -> None:
+    def __init__(self, client: "Groq") -> None:
         self._client = client
 
     def create(
@@ -47,6 +47,7 @@ class OpenAIBatchProcess(BatchProcess):
             BatchRequest with job details
         """
         try:
+            # Upload file first
             if isinstance(file, str):
                 with open(file, "rb") as f:
                     file_response = self._client.files.create(file=f, purpose="batch")
@@ -57,6 +58,7 @@ class OpenAIBatchProcess(BatchProcess):
             else:
                 file_response = self._client.files.create(file=file, purpose="batch")
 
+            # Create batch job
             batch_kwargs = {
                 "input_file_id": file_response.id,
                 "endpoint": endpoint,
@@ -107,6 +109,7 @@ class OpenAIBatchProcess(BatchProcess):
             if not batch.output_file_id:
                 raise BatchError("Batch job has no output file")
 
+            # Download output file
             content = self._client.files.content(batch.output_file_id)
             lines = content.text.strip().split("\n")
 
@@ -168,7 +171,7 @@ class OpenAIBatchProcess(BatchProcess):
             raise self._handle_exception(e)
 
     def _to_batch_request(self, response) -> BatchRequest:
-        """Convert OpenAI batch response to BatchRequest."""
+        """Convert Groq batch response to BatchRequest."""
         status_map = {
             "validating": BatchStatus.VALIDATING,
             "failed": BatchStatus.FAILED,
@@ -177,7 +180,7 @@ class OpenAIBatchProcess(BatchProcess):
             "completed": BatchStatus.COMPLETED,
             "expired": BatchStatus.EXPIRED,
             "cancelled": BatchStatus.CANCELLED,
-            "cancelling": BatchStatus.CANCELLED,  # Map cancelling to cancelled
+            "cancelling": BatchStatus.CANCELLED,
         }
 
         timestamps = BatchTimestamp(
@@ -215,26 +218,26 @@ class OpenAIBatchProcess(BatchProcess):
         return datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat()
 
     def _handle_exception(self, e: Exception) -> Exception:
-        """Convert OpenAI exceptions to our custom exceptions."""
+        """Convert Groq exceptions to our custom exceptions."""
         try:
-            import openai
+            import groq
         except ImportError:
             return BatchError(str(e))
 
-        if isinstance(e, openai.AuthenticationError):
+        if isinstance(e, groq.AuthenticationError):
             return AuthenticationError(str(e))
-        elif isinstance(e, openai.NotFoundError):
+        elif isinstance(e, groq.NotFoundError):
             return BatchError(f"Batch job not found: {e}")
-        elif isinstance(e, openai.APIError):
+        elif isinstance(e, groq.APIError):
             return APIError(str(e), status_code=getattr(e, "status_code", None))
         else:
             return BatchError(str(e))
 
 
-class OpenAIAsyncBatchProcess(AsyncBatchProcess):
-    """OpenAI Async Batch API implementation."""
+class GroqAsyncBatchProcess(AsyncBatchProcess):
+    """Groq Async Batch API implementation."""
 
-    def __init__(self, client: "AsyncOpenAI") -> None:
+    def __init__(self, client: "AsyncGroq") -> None:
         self._client = client
 
     async def create(
@@ -260,6 +263,7 @@ class OpenAIAsyncBatchProcess(AsyncBatchProcess):
             BatchRequest with job details
         """
         try:
+            # Upload file first
             if isinstance(file, str):
                 with open(file, "rb") as f:
                     file_response = await self._client.files.create(
@@ -274,6 +278,7 @@ class OpenAIAsyncBatchProcess(AsyncBatchProcess):
                     file=file, purpose="batch"
                 )
 
+            # Create batch job
             batch_kwargs = {
                 "input_file_id": file_response.id,
                 "endpoint": endpoint,
@@ -324,6 +329,7 @@ class OpenAIAsyncBatchProcess(AsyncBatchProcess):
             if not batch.output_file_id:
                 raise BatchError("Batch job has no output file")
 
+            # Download output file
             content = await self._client.files.content(batch.output_file_id)
             lines = content.text.strip().split("\n")
 
@@ -385,7 +391,7 @@ class OpenAIAsyncBatchProcess(AsyncBatchProcess):
             raise self._handle_exception(e)
 
     def _to_batch_request(self, response) -> BatchRequest:
-        """Convert OpenAI batch response to BatchRequest."""
+        """Convert Groq batch response to BatchRequest."""
         status_map = {
             "validating": BatchStatus.VALIDATING,
             "failed": BatchStatus.FAILED,
@@ -394,7 +400,7 @@ class OpenAIAsyncBatchProcess(AsyncBatchProcess):
             "completed": BatchStatus.COMPLETED,
             "expired": BatchStatus.EXPIRED,
             "cancelled": BatchStatus.CANCELLED,
-            "cancelling": BatchStatus.CANCELLED,  # Map cancelling to cancelled
+            "cancelling": BatchStatus.CANCELLED,
         }
 
         timestamps = BatchTimestamp(
@@ -432,17 +438,17 @@ class OpenAIAsyncBatchProcess(AsyncBatchProcess):
         return datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat()
 
     def _handle_exception(self, e: Exception) -> Exception:
-        """Convert OpenAI exceptions to our custom exceptions."""
+        """Convert Groq exceptions to our custom exceptions."""
         try:
-            import openai
+            import groq
         except ImportError:
             return BatchError(str(e))
 
-        if isinstance(e, openai.AuthenticationError):
+        if isinstance(e, groq.AuthenticationError):
             return AuthenticationError(str(e))
-        elif isinstance(e, openai.NotFoundError):
+        elif isinstance(e, groq.NotFoundError):
             return BatchError(f"Batch job not found: {e}")
-        elif isinstance(e, openai.APIError):
+        elif isinstance(e, groq.APIError):
             return APIError(str(e), status_code=getattr(e, "status_code", None))
         else:
             return BatchError(str(e))

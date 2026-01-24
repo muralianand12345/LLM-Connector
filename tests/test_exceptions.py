@@ -46,7 +46,9 @@ class TestExceptions:
 
     def test_api_error(self):
         """Test APIError with status code and response."""
-        error = APIError("Server error", status_code=500, response={"error": "Internal"})
+        error = APIError(
+            "Server error", status_code=500, response={"error": "Internal"}
+        )
         assert error.status_code == 500
         assert error.response == {"error": "Internal"}
         assert "Server error" in str(error)

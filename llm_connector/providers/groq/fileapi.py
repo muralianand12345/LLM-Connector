@@ -1,3 +1,13 @@
+"""
+Groq File API Implementation
+
+Groq's File API is OpenAI-compatible and supports:
+- JSONL file format
+- Max 50,000 lines per file
+- Max 200MB file size
+- Purpose: "batch" for batch processing
+"""
+
 from __future__ import annotations
 
 from typing import Union, Optional, BinaryIO, List, TYPE_CHECKING
@@ -6,26 +16,31 @@ from ...base import FileAPI, AsyncFileAPI, FileObject, PurposeType
 from ...exceptions import FileError, AuthenticationError, APIError
 
 if TYPE_CHECKING:
-    from openai import OpenAI
-    from openai import AsyncOpenAI
+    from groq import Groq
+    from groq import AsyncGroq
 
 
-class OpenAIFileAPI(FileAPI):
-    """OpenAI Files API implementation."""
+class GroqFileAPI(FileAPI):
+    """Groq File API implementation."""
 
-    def __init__(self, client: "OpenAI") -> None:
+    def __init__(self, client: "Groq") -> None:
         self._client = client
 
     def upload(self, *, file: Union[str, bytes, BinaryIO], purpose: PurposeType) -> str:
         """
-        Upload a file to OpenAI.
+        Upload a file to Groq.
 
         Args:
             file: File path, bytes, or file-like object
-            purpose: Purpose of the file ('fine-tune' or 'batch')
+            purpose: Purpose of the file ('batch' for batch processing)
 
         Returns:
             The file ID
+
+        Note:
+            Groq currently supports JSONL files with:
+            - Max 50,000 lines
+            - Max 200MB size
         """
         try:
             if isinstance(file, str):
@@ -61,7 +76,7 @@ class OpenAIFileAPI(FileAPI):
                 purpose=response.purpose,
                 bytes=response.bytes,
                 created_at=response.created_at,
-                status=response.status,
+                status=response.status if hasattr(response, "status") else None,
             )
         except Exception as e:
             raise self._handle_exception(e)
@@ -118,7 +133,7 @@ class OpenAIFileAPI(FileAPI):
                     purpose=f.purpose,
                     bytes=f.bytes,
                     created_at=f.created_at,
-                    status=f.status,
+                    status=f.status if hasattr(f, "status") else None,
                 )
                 for f in response.data
             ]
@@ -126,40 +141,45 @@ class OpenAIFileAPI(FileAPI):
             raise self._handle_exception(e)
 
     def _handle_exception(self, e: Exception) -> Exception:
-        """Convert OpenAI exceptions to our custom exceptions."""
+        """Convert Groq exceptions to our custom exceptions."""
         try:
-            import openai
+            import groq
         except ImportError:
             return FileError(str(e))
 
-        if isinstance(e, openai.AuthenticationError):
+        if isinstance(e, groq.AuthenticationError):
             return AuthenticationError(str(e))
-        elif isinstance(e, openai.NotFoundError):
+        elif isinstance(e, groq.NotFoundError):
             return FileError(f"File not found: {e}")
-        elif isinstance(e, openai.APIError):
+        elif isinstance(e, groq.APIError):
             return APIError(str(e), status_code=getattr(e, "status_code", None))
         else:
             return FileError(str(e))
 
 
-class OpenAIAsyncFileAPI(AsyncFileAPI):
-    """OpenAI Async Files API implementation."""
+class GroqAsyncFileAPI(AsyncFileAPI):
+    """Groq Async File API implementation."""
 
-    def __init__(self, client: "AsyncOpenAI") -> None:
+    def __init__(self, client: "AsyncGroq") -> None:
         self._client = client
 
     async def upload(
         self, *, file: Union[str, bytes, BinaryIO], purpose: PurposeType
     ) -> str:
         """
-        Upload a file to OpenAI asynchronously.
+        Upload a file to Groq asynchronously.
 
         Args:
             file: File path, bytes, or file-like object
-            purpose: Purpose of the file ('fine-tune' or 'batch')
+            purpose: Purpose of the file ('batch' for batch processing)
 
         Returns:
             The file ID
+
+        Note:
+            Groq currently supports JSONL files with:
+            - Max 50,000 lines
+            - Max 200MB size
         """
         try:
             if isinstance(file, str):
@@ -195,7 +215,7 @@ class OpenAIAsyncFileAPI(AsyncFileAPI):
                 purpose=response.purpose,
                 bytes=response.bytes,
                 created_at=response.created_at,
-                status=response.status,
+                status=response.status if hasattr(response, "status") else None,
             )
         except Exception as e:
             raise self._handle_exception(e)
@@ -252,7 +272,7 @@ class OpenAIAsyncFileAPI(AsyncFileAPI):
                     purpose=f.purpose,
                     bytes=f.bytes,
                     created_at=f.created_at,
-                    status=f.status,
+                    status=f.status if hasattr(f, "status") else None,
                 )
                 for f in response.data
             ]
@@ -260,17 +280,17 @@ class OpenAIAsyncFileAPI(AsyncFileAPI):
             raise self._handle_exception(e)
 
     def _handle_exception(self, e: Exception) -> Exception:
-        """Convert OpenAI exceptions to our custom exceptions."""
+        """Convert Groq exceptions to our custom exceptions."""
         try:
-            import openai
+            import groq
         except ImportError:
             return FileError(str(e))
 
-        if isinstance(e, openai.AuthenticationError):
+        if isinstance(e, groq.AuthenticationError):
             return AuthenticationError(str(e))
-        elif isinstance(e, openai.NotFoundError):
+        elif isinstance(e, groq.NotFoundError):
             return FileError(f"File not found: {e}")
-        elif isinstance(e, openai.APIError):
+        elif isinstance(e, groq.APIError):
             return APIError(str(e), status_code=getattr(e, "status_code", None))
         else:
             return FileError(str(e))

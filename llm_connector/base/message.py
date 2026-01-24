@@ -7,6 +7,7 @@ from typing import List, Union, Optional, Literal, Dict
 
 class Role(str, Enum):
     """Message roles."""
+
     SYSTEM = "system"
     DEVELOPER = "developer"
     USER = "user"
@@ -16,12 +17,14 @@ class Role(str, Enum):
 
 class TextBlock(BaseModel):
     """Text content block."""
+
     type: Literal["text"] = "text"
     text: str
 
 
 class ImageBlock(BaseModel):
     """Image content block."""
+
     type: Literal["image"] = "image"
     url: str
     detail: Literal["low", "high", "auto"] = "auto"
@@ -29,6 +32,7 @@ class ImageBlock(BaseModel):
 
 class DocumentBlock(BaseModel):
     """Document content block."""
+
     type: Literal["document"] = "document"
     data: Dict
     id: Optional[str] = None
@@ -43,6 +47,7 @@ ContentBlock = Union[
 
 class ToolCall(BaseModel):
     """Represents a tool call within a message."""
+
     id: str
     name: str
     arguments: Dict
@@ -50,6 +55,7 @@ class ToolCall(BaseModel):
 
 class SystemMessage(BaseModel):
     """System or Developer message."""
+
     role: Literal[Role.SYSTEM, Role.DEVELOPER]
     content: List[TextBlock]
 
@@ -62,6 +68,7 @@ class SystemMessage(BaseModel):
 
 class UserMessage(BaseModel):
     """User message."""
+
     role: Literal[Role.USER]
     content: List[ContentBlock]
 
@@ -74,6 +81,7 @@ class UserMessage(BaseModel):
 
 class AssistantMessage(BaseModel):
     """Assistant message."""
+
     role: Literal[Role.ASSISTANT]
     content: Optional[List[TextBlock]] = None
     tool_calls: Optional[List[ToolCall]] = None
@@ -81,7 +89,9 @@ class AssistantMessage(BaseModel):
     @model_validator(mode="after")
     def validate_assistant(self):
         if self.content and self.tool_calls:
-            raise ValueError("Assistant message cannot have both content and tool_calls")
+            raise ValueError(
+                "Assistant message cannot have both content and tool_calls"
+            )
         if not self.content and not self.tool_calls:
             raise ValueError("Assistant message must have content or tool_calls")
         return self
@@ -89,6 +99,7 @@ class AssistantMessage(BaseModel):
 
 class ToolMessage(BaseModel):
     """Tool message."""
+
     role: Literal[Role.TOOL]
     tool_call_id: str
     content: List[TextBlock]
@@ -110,6 +121,7 @@ Message = Union[
 
 class Conversation(BaseModel):
     """Represents a conversation consisting of multiple messages."""
+
     messages: List[Message]
 
     def append(self, message: Message) -> None:

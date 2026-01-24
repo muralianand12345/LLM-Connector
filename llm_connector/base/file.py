@@ -7,6 +7,7 @@ PurposeType = Literal["fine-tune", "batch"]
 
 class FileObject(BaseModel):
     """Metadata for a file object."""
+
     id: str
     filename: str
     purpose: PurposeType
@@ -48,7 +49,9 @@ class AsyncFileAPI(ABC):
     """Abstract base class for async file operations API."""
 
     @abstractmethod
-    async def upload(self, *, file: Union[str, bytes, BinaryIO], purpose: PurposeType) -> str:
+    async def upload(
+        self, *, file: Union[str, bytes, BinaryIO], purpose: PurposeType
+    ) -> str:
         """Upload a file asynchronously and return the file ID."""
         pass
 

@@ -65,7 +65,9 @@ class ConnectorFactory:
         raise TypeError(f"Invalid registry entry for provider '{provider}': {entry!r}")
 
     @classmethod
-    def create(cls, provider: str, *, config: Dict[str, Any] | None = None) -> LLMConnector:
+    def create(
+        cls, provider: str, *, config: Dict[str, Any] | None = None
+    ) -> LLMConnector:
         """
         Create a connector instance for the specified provider.
 

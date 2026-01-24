@@ -40,7 +40,7 @@ def sample_chat_response():
 def sample_stream_chunks():
     """Create sample streaming chunks."""
     chunks = []
-    
+
     # First chunk
     chunk1 = MagicMock()
     chunk1.id = "chatcmpl-123"
@@ -51,7 +51,7 @@ def sample_stream_chunks():
     chunk1.choices[0].finish_reason = None
     chunk1.usage = None
     chunks.append(chunk1)
-    
+
     # Second chunk
     chunk2 = MagicMock()
     chunk2.id = "chatcmpl-123"
@@ -65,7 +65,7 @@ def sample_stream_chunks():
     chunk2.usage.completion_tokens = 2
     chunk2.usage.total_tokens = 7
     chunks.append(chunk2)
-    
+
     return chunks
 
 
@@ -80,7 +80,9 @@ def sample_tool_call_response():
     response.choices[0].message.tool_calls = [MagicMock()]
     response.choices[0].message.tool_calls[0].id = "call_abc123"
     response.choices[0].message.tool_calls[0].function.name = "get_weather"
-    response.choices[0].message.tool_calls[0].function.arguments = '{"location": "Tokyo"}'
+    response.choices[0].message.tool_calls[
+        0
+    ].function.arguments = '{"location": "Tokyo"}'
     response.choices[0].finish_reason = "tool_calls"
     response.usage.prompt_tokens = 20
     response.usage.completion_tokens = 15
@@ -107,7 +109,11 @@ def sample_batch_response():
     response.error_file_id = None
     response.endpoint = "/v1/chat/completions"
     response.request_counts = MagicMock()
-    response.request_counts.model_dump.return_value = {"total": 10, "completed": 10, "failed": 0}
+    response.request_counts.model_dump.return_value = {
+        "total": 10,
+        "completed": 10,
+        "failed": 0,
+    }
     return response
 
 

@@ -9,6 +9,7 @@ from .message import Message, ToolCall
 
 class Usage(BaseModel):
     """Token usage statistics."""
+
     prompt_tokens: int
     completion_tokens: int
     total_tokens: int
@@ -16,6 +17,7 @@ class Usage(BaseModel):
 
 class ToolCallDelta(BaseModel):
     """Represents a partial tool call during streaming."""
+
     index: int
     id: Optional[str] = None
     name: Optional[str] = None
@@ -24,7 +26,7 @@ class ToolCallDelta(BaseModel):
 
 class ChatResponses(ABC):
     """Abstract base class for chat completion responses."""
-    
+
     @property
     @abstractmethod
     def id(self) -> str:
@@ -106,7 +108,17 @@ class ChatCompletion(ABC):
     """Abstract base class for chat completion API."""
 
     @abstractmethod
-    def invoke(self, *, messages: Union[str, Message, List[Message]], tools: Optional[List[Dict[str, Any]]] = None, model: Optional[str] = None, temperature: Optional[float] = None, max_tokens: Optional[int] = None, stream: bool = False, **kwargs: Any) -> Union[ChatResponses, Iterator[ChatStreamChunks]]:
+    def invoke(
+        self,
+        *,
+        messages: Union[str, Message, List[Message]],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        model: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        stream: bool = False,
+        **kwargs: Any,
+    ) -> Union[ChatResponses, Iterator[ChatStreamChunks]]:
         """
         Send a chat completion request.
 
@@ -129,7 +141,17 @@ class AsyncChatCompletion(ABC):
     """Abstract base class for async chat completion API."""
 
     @abstractmethod
-    async def invoke(self, *, messages: Union[str, Message, List[Message]], tools: Optional[List[Dict[str, Any]]] = None, model: Optional[str] = None, temperature: Optional[float] = None, max_tokens: Optional[int] = None, stream: bool = False, **kwargs: Any) -> Union[ChatResponses, AsyncIterator[ChatStreamChunks]]:
+    async def invoke(
+        self,
+        *,
+        messages: Union[str, Message, List[Message]],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        model: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        stream: bool = False,
+        **kwargs: Any,
+    ) -> Union[ChatResponses, AsyncIterator[ChatStreamChunks]]:
         """
         Send an async chat completion request.
 

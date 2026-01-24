@@ -1,10 +1,43 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, AsyncGenerator, Optional, List, Union, Generator, TYPE_CHECKING
+from typing import (
+    Any,
+    Dict,
+    AsyncGenerator,
+    Optional,
+    List,
+    Union,
+    Generator,
+    TYPE_CHECKING,
+)
 
-from ...exceptions import APIError, AuthenticationError, RateLimitError, InvalidRequestError, ContentFilterError, ContextLengthExceededError
-from ...base import ChatCompletion, AsyncChatCompletion, ChatResponses, ChatStreamChunks, Usage, ToolCallDelta, Message, ToolCall, TextBlock, ImageBlock, DocumentBlock, SystemMessage, UserMessage, AssistantMessage, ToolMessage, Role
+from ...exceptions import (
+    APIError,
+    AuthenticationError,
+    RateLimitError,
+    InvalidRequestError,
+    ContentFilterError,
+    ContextLengthExceededError,
+)
+from ...base import (
+    ChatCompletion,
+    AsyncChatCompletion,
+    ChatResponses,
+    ChatStreamChunks,
+    Usage,
+    ToolCallDelta,
+    Message,
+    ToolCall,
+    TextBlock,
+    ImageBlock,
+    DocumentBlock,
+    SystemMessage,
+    UserMessage,
+    AssistantMessage,
+    ToolMessage,
+    Role,
+)
 
 if TYPE_CHECKING:
     from openai import OpenAI
@@ -39,8 +72,13 @@ class OpenAIChatResponses(ChatResponses):
                 ToolCall(
                     id=tc.id,
                     name=tc.function.name,
-                    arguments=json.loads(tc.function.arguments) if tc.function.arguments else {},
-                ) for tc in self._choice.message.tool_calls
+                    arguments=(
+                        json.loads(tc.function.arguments)
+                        if tc.function.arguments
+                        else {}
+                    ),
+                )
+                for tc in self._choice.message.tool_calls
             ]
         return None
 
@@ -64,6 +102,7 @@ class OpenAIChatResponses(ChatResponses):
     def raw(self):
         """Access the raw OpenAI response."""
         return self._response
+
 
 class OpenAIAsyncChatResponses(ChatResponses):
     """OpenAI async chat completion response wrapper."""
@@ -93,8 +132,13 @@ class OpenAIAsyncChatResponses(ChatResponses):
                 ToolCall(
                     id=tc.id,
                     name=tc.function.name,
-                    arguments=json.loads(tc.function.arguments) if tc.function.arguments else {},
-                ) for tc in self._choice.message.tool_calls
+                    arguments=(
+                        json.loads(tc.function.arguments)
+                        if tc.function.arguments
+                        else {}
+                    ),
+                )
+                for tc in self._choice.message.tool_calls
             ]
         return None
 
@@ -118,6 +162,7 @@ class OpenAIAsyncChatResponses(ChatResponses):
     def raw(self):
         """Access the raw OpenAI response."""
         return self._response
+
 
 class OpenAIChatStreamChunks(ChatStreamChunks):
     """OpenAI streaming chunk wrapper."""
@@ -149,7 +194,8 @@ class OpenAIChatStreamChunks(ChatStreamChunks):
                     id=tc.id,
                     name=tc.function.name if tc.function else None,
                     arguments=tc.function.arguments if tc.function else None,
-                ) for tc in self._choice.delta.tool_calls
+                )
+                for tc in self._choice.delta.tool_calls
             ]
         return None
 
@@ -173,6 +219,7 @@ class OpenAIChatStreamChunks(ChatStreamChunks):
     def raw(self):
         """Access the raw OpenAI chunk."""
         return self._chunk
+
 
 class OpenAIAsyncChatStreamChunks(ChatStreamChunks):
     """OpenAI async streaming chunk wrapper."""
@@ -204,7 +251,8 @@ class OpenAIAsyncChatStreamChunks(ChatStreamChunks):
                     id=tc.id,
                     name=tc.function.name if tc.function else None,
                     arguments=tc.function.arguments if tc.function else None,
-                ) for tc in self._choice.delta.tool_calls
+                )
+                for tc in self._choice.delta.tool_calls
             ]
         return None
 
@@ -229,6 +277,7 @@ class OpenAIAsyncChatStreamChunks(ChatStreamChunks):
         """Access the raw OpenAI chunk."""
         return self._chunk
 
+
 class OpenAIChatCompletion(ChatCompletion):
     """OpenAI Chat Completion API implementation."""
 
@@ -237,7 +286,17 @@ class OpenAIChatCompletion(ChatCompletion):
     def __init__(self, client: "OpenAI") -> None:
         self._client = client
 
-    def invoke(self, *, messages: Union[str, Message, List[Message]], tools: Optional[List[Dict[str, Any]]] = None, model: Optional[str] = None, temperature: Optional[float] = None, max_tokens: Optional[int] = None, stream: bool = False, **kwargs: Any) -> Union[OpenAIChatResponses, Generator[OpenAIChatStreamChunks, None, None]]:
+    def invoke(
+        self,
+        *,
+        messages: Union[str, Message, List[Message]],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        model: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        stream: bool = False,
+        **kwargs: Any,
+    ) -> Union[OpenAIChatResponses, Generator[OpenAIChatStreamChunks, None, None]]:
         """
         Send a chat completion request.
 
@@ -284,7 +343,9 @@ class OpenAIChatCompletion(ChatCompletion):
         except Exception as e:
             raise self._handle_exception(e)
 
-    def _stream(self, request_params: Dict[str, Any]) -> Generator[OpenAIChatStreamChunks, None, None]:
+    def _stream(
+        self, request_params: Dict[str, Any]
+    ) -> Generator[OpenAIChatStreamChunks, None, None]:
         """Generate streaming response chunks."""
         try:
             response = self._client.chat.completions.create(**request_params)
@@ -293,7 +354,9 @@ class OpenAIChatCompletion(ChatCompletion):
         except Exception as e:
             raise self._handle_exception(e)
 
-    def _format_messages(self, messages: Union[str, Message, List[Message]]) -> List[Dict[str, Any]]:
+    def _format_messages(
+        self, messages: Union[str, Message, List[Message]]
+    ) -> List[Dict[str, Any]]:
         """Convert messages to OpenAI format."""
         if isinstance(messages, str):
             return [{"role": "user", "content": messages}]
@@ -352,7 +415,9 @@ class OpenAIChatCompletion(ChatCompletion):
         else:
             raise InvalidRequestError(f"Unknown message type: {type(msg)}")
 
-    def _format_content_blocks(self, content: List[Union[TextBlock, ImageBlock, DocumentBlock]]) -> List[Dict[str, Any]]:
+    def _format_content_blocks(
+        self, content: List[Union[TextBlock, ImageBlock, DocumentBlock]]
+    ) -> List[Dict[str, Any]]:
         """Convert content blocks to OpenAI format."""
         formatted = []
 
@@ -361,19 +426,23 @@ class OpenAIChatCompletion(ChatCompletion):
                 formatted.append({"type": "text", "text": block.text})
 
             elif isinstance(block, ImageBlock):
-                formatted.append({
-                    "type": "image_url",
-                    "image_url": {
-                        "url": block.url,
-                        "detail": block.detail,
-                    },
-                })
+                formatted.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": block.url,
+                            "detail": block.detail,
+                        },
+                    }
+                )
 
             elif isinstance(block, DocumentBlock):
-                formatted.append({
-                    "type": "text",
-                    "text": f"[Document: {json.dumps(block.data)}]",
-                })
+                formatted.append(
+                    {
+                        "type": "text",
+                        "text": f"[Document: {json.dumps(block.data)}]",
+                    }
+                )
 
         return formatted
 
@@ -382,10 +451,12 @@ class OpenAIChatCompletion(ChatCompletion):
         formatted = []
         for tool in tools:
             if "type" not in tool:
-                formatted.append({
-                    "type": "function",
-                    "function": tool,
-                })
+                formatted.append(
+                    {
+                        "type": "function",
+                        "function": tool,
+                    }
+                )
             else:
                 formatted.append(tool)
         return formatted
@@ -412,7 +483,10 @@ class OpenAIChatCompletion(ChatCompletion):
             error_msg = str(e).lower()
             if "context_length" in error_msg or "maximum context length" in error_msg:
                 return ContextLengthExceededError(str(e))
-            if "content_filter" in error_msg or "content management policy" in error_msg:
+            if (
+                "content_filter" in error_msg
+                or "content management policy" in error_msg
+            ):
                 return ContentFilterError(str(e))
             return InvalidRequestError(str(e))
 
@@ -426,6 +500,7 @@ class OpenAIChatCompletion(ChatCompletion):
         else:
             return APIError(str(e))
 
+
 class OpenAIAsyncChatCompletion(AsyncChatCompletion):
     """OpenAI Async Chat Completion API implementation."""
 
@@ -434,7 +509,19 @@ class OpenAIAsyncChatCompletion(AsyncChatCompletion):
     def __init__(self, client: "AsyncOpenAI") -> None:
         self._client = client
 
-    async def invoke(self, *, messages: Union[str, Message, List[Message]], tools: Optional[List[Dict[str, Any]]] = None, model: Optional[str] = None, temperature: Optional[float] = None, max_tokens: Optional[int] = None, stream: bool = False, **kwargs: Any) -> Union[OpenAIAsyncChatResponses, AsyncGenerator[OpenAIAsyncChatStreamChunks, None]]:
+    async def invoke(
+        self,
+        *,
+        messages: Union[str, Message, List[Message]],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        model: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        stream: bool = False,
+        **kwargs: Any,
+    ) -> Union[
+        OpenAIAsyncChatResponses, AsyncGenerator[OpenAIAsyncChatStreamChunks, None]
+    ]:
         """
         Send an async chat completion request.
 
@@ -481,7 +568,9 @@ class OpenAIAsyncChatCompletion(AsyncChatCompletion):
         except Exception as e:
             raise self._handle_exception(e)
 
-    async def _stream(self, request_params: Dict[str, Any]) -> AsyncGenerator[OpenAIAsyncChatStreamChunks, None]:
+    async def _stream(
+        self, request_params: Dict[str, Any]
+    ) -> AsyncGenerator[OpenAIAsyncChatStreamChunks, None]:
         """Generate async streaming response chunks."""
         try:
             response = await self._client.chat.completions.create(**request_params)
@@ -490,7 +579,9 @@ class OpenAIAsyncChatCompletion(AsyncChatCompletion):
         except Exception as e:
             raise self._handle_exception(e)
 
-    def _format_messages(self, messages: Union[str, Message, List[Message]]) -> List[Dict[str, Any]]:
+    def _format_messages(
+        self, messages: Union[str, Message, List[Message]]
+    ) -> List[Dict[str, Any]]:
         """Convert messages to OpenAI format."""
         if isinstance(messages, str):
             return [{"role": "user", "content": messages}]
@@ -551,7 +642,9 @@ class OpenAIAsyncChatCompletion(AsyncChatCompletion):
         else:
             raise InvalidRequestError(f"Unknown message type: {type(msg)}")
 
-    def _format_content_blocks(self, content: List[Union[TextBlock, ImageBlock, DocumentBlock]]) -> List[Dict[str, Any]]:
+    def _format_content_blocks(
+        self, content: List[Union[TextBlock, ImageBlock, DocumentBlock]]
+    ) -> List[Dict[str, Any]]:
         """Convert content blocks to OpenAI format."""
         formatted = []
 
@@ -560,19 +653,23 @@ class OpenAIAsyncChatCompletion(AsyncChatCompletion):
                 formatted.append({"type": "text", "text": block.text})
 
             elif isinstance(block, ImageBlock):
-                formatted.append({
-                    "type": "image_url",
-                    "image_url": {
-                        "url": block.url,
-                        "detail": block.detail,
-                    },
-                })
+                formatted.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": block.url,
+                            "detail": block.detail,
+                        },
+                    }
+                )
 
             elif isinstance(block, DocumentBlock):
-                formatted.append({
-                    "type": "text",
-                    "text": f"[Document: {json.dumps(block.data)}]",
-                })
+                formatted.append(
+                    {
+                        "type": "text",
+                        "text": f"[Document: {json.dumps(block.data)}]",
+                    }
+                )
 
         return formatted
 
@@ -581,10 +678,12 @@ class OpenAIAsyncChatCompletion(AsyncChatCompletion):
         formatted = []
         for tool in tools:
             if "type" not in tool:
-                formatted.append({
-                    "type": "function",
-                    "function": tool,
-                })
+                formatted.append(
+                    {
+                        "type": "function",
+                        "function": tool,
+                    }
+                )
             else:
                 formatted.append(tool)
         return formatted
@@ -611,7 +710,10 @@ class OpenAIAsyncChatCompletion(AsyncChatCompletion):
             error_msg = str(e).lower()
             if "context_length" in error_msg or "maximum context length" in error_msg:
                 return ContextLengthExceededError(str(e))
-            if "content_filter" in error_msg or "content management policy" in error_msg:
+            if (
+                "content_filter" in error_msg
+                or "content management policy" in error_msg
+            ):
                 return ContentFilterError(str(e))
             return InvalidRequestError(str(e))
 

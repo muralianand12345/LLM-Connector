@@ -4,11 +4,20 @@ import os
 from typing import Any, Dict, Optional
 
 from ...exceptions import ProviderImportError, AuthenticationError
-from ...base import LLMConnector, ChatCompletion, AsyncChatCompletion, BatchProcess, AsyncBatchProcess, FileAPI, AsyncFileAPI
+from ...base import (
+    LLMConnector,
+    ChatCompletion,
+    AsyncChatCompletion,
+    BatchProcess,
+    AsyncBatchProcess,
+    FileAPI,
+    AsyncFileAPI,
+)
 
 try:
     import groq
     from groq import Groq, AsyncGroq
+
     GROQ_AVAILABLE = True
 except ImportError:
     groq = None  # type: ignore
@@ -41,8 +50,7 @@ class GroqConnector(LLMConnector):
     def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
         if not GROQ_AVAILABLE:
             raise ProviderImportError(
-                "Groq package is not installed. "
-                "Install with: pip install groq"
+                "Groq package is not installed. " "Install with: pip install groq"
             )
 
         super().__init__(config)
@@ -77,7 +85,7 @@ class GroqConnector(LLMConnector):
         if not api_key:
             raise AuthenticationError(
                 "Groq API key not found. "
-                "Set it via config[\'api_key\'] or GROQ_API_KEY environment variable."
+                "Set it via config['api_key'] or GROQ_API_KEY environment variable."
             )
 
     def _get_async_client(self) -> "AsyncGroq":  # type: ignore
@@ -92,6 +100,7 @@ class GroqConnector(LLMConnector):
         """Get the chat completion interface."""
         if self._chat is None:
             from .completion import GroqChatCompletion
+
             self._chat = GroqChatCompletion(self._client)
         return self._chat
 
@@ -99,6 +108,7 @@ class GroqConnector(LLMConnector):
         """Get the batch processing interface."""
         if self._batch is None:
             from .batch import GroqBatchProcess
+
             self._batch = GroqBatchProcess(self._client)
         return self._batch
 
@@ -106,6 +116,7 @@ class GroqConnector(LLMConnector):
         """Get the file API interface."""
         if self._file is None:
             from .fileapi import GroqFileAPI
+
             self._file = GroqFileAPI(self._client)
         return self._file
 
@@ -115,13 +126,17 @@ class GroqConnector(LLMConnector):
         """Get the async chat completion interface."""
         if self._async_chat_instance is None:
             from .completion import GroqAsyncChatCompletion
-            self._async_chat_instance = GroqAsyncChatCompletion(self._get_async_client())
+
+            self._async_chat_instance = GroqAsyncChatCompletion(
+                self._get_async_client()
+            )
         return self._async_chat_instance
 
     def async_batch(self) -> AsyncBatchProcess:
         """Get the async batch processing interface."""
         if self._async_batch_instance is None:
             from .batch import GroqAsyncBatchProcess
+
             self._async_batch_instance = GroqAsyncBatchProcess(self._get_async_client())
         return self._async_batch_instance
 
@@ -129,6 +144,7 @@ class GroqConnector(LLMConnector):
         """Get the async file API interface."""
         if self._async_file_instance is None:
             from .fileapi import GroqAsyncFileAPI
+
             self._async_file_instance = GroqAsyncFileAPI(self._get_async_client())
         return self._async_file_instance
 

@@ -68,9 +68,7 @@ class TestToolCall:
     def test_create_tool_call(self):
         """Test creating a tool call."""
         tool_call = ToolCall(
-            id="call_123",
-            name="get_weather",
-            arguments={"location": "Tokyo"}
+            id="call_123", name="get_weather", arguments={"location": "Tokyo"}
         )
         assert tool_call.id == "call_123"
         assert tool_call.name == "get_weather"
@@ -83,8 +81,7 @@ class TestSystemMessage:
     def test_create_system_message(self):
         """Test creating a system message."""
         msg = SystemMessage(
-            role=Role.SYSTEM,
-            content=[TextBlock(text="You are a helpful assistant.")]
+            role=Role.SYSTEM, content=[TextBlock(text="You are a helpful assistant.")]
         )
         assert msg.role == Role.SYSTEM
         assert len(msg.content) == 1
@@ -93,8 +90,7 @@ class TestSystemMessage:
     def test_create_developer_message(self):
         """Test creating a developer message."""
         msg = SystemMessage(
-            role=Role.DEVELOPER,
-            content=[TextBlock(text="Developer instructions.")]
+            role=Role.DEVELOPER, content=[TextBlock(text="Developer instructions.")]
         )
         assert msg.role == Role.DEVELOPER
 
@@ -109,10 +105,7 @@ class TestUserMessage:
 
     def test_create_user_message_text(self):
         """Test creating a user message with text."""
-        msg = UserMessage(
-            role=Role.USER,
-            content=[TextBlock(text="Hello!")]
-        )
+        msg = UserMessage(role=Role.USER, content=[TextBlock(text="Hello!")])
         assert msg.role == Role.USER
         assert msg.content[0].text == "Hello!"
 
@@ -123,7 +116,7 @@ class TestUserMessage:
             content=[
                 TextBlock(text="What's in this image?"),
                 ImageBlock(url="https://example.com/image.png"),
-            ]
+            ],
         )
         assert len(msg.content) == 2
         assert msg.content[0].type == "text"
@@ -141,8 +134,7 @@ class TestAssistantMessage:
     def test_create_assistant_message_content(self):
         """Test creating assistant message with content."""
         msg = AssistantMessage(
-            role=Role.ASSISTANT,
-            content=[TextBlock(text="I can help with that!")]
+            role=Role.ASSISTANT, content=[TextBlock(text="I can help with that!")]
         )
         assert msg.role == Role.ASSISTANT
         assert msg.content[0].text == "I can help with that!"
@@ -154,7 +146,7 @@ class TestAssistantMessage:
             role=Role.ASSISTANT,
             tool_calls=[
                 ToolCall(id="call_1", name="get_weather", arguments={"location": "NYC"})
-            ]
+            ],
         )
         assert msg.content is None
         assert len(msg.tool_calls) == 1
@@ -165,7 +157,7 @@ class TestAssistantMessage:
             AssistantMessage(
                 role=Role.ASSISTANT,
                 content=[TextBlock(text="Text")],
-                tool_calls=[ToolCall(id="call_1", name="func", arguments={})]
+                tool_calls=[ToolCall(id="call_1", name="func", arguments={})],
             )
 
     def test_assistant_message_neither_content_nor_tools_fails(self):
@@ -182,7 +174,7 @@ class TestToolMessage:
         msg = ToolMessage(
             role=Role.TOOL,
             tool_call_id="call_123",
-            content=[TextBlock(text='{"temperature": 72}')]
+            content=[TextBlock(text='{"temperature": 72}')],
         )
         assert msg.role == Role.TOOL
         assert msg.tool_call_id == "call_123"
@@ -199,10 +191,14 @@ class TestConversation:
 
     def test_create_conversation(self):
         """Test creating a conversation."""
-        conv = Conversation(messages=[
-            SystemMessage(role=Role.SYSTEM, content=[TextBlock(text="System prompt")]),
-            UserMessage(role=Role.USER, content=[TextBlock(text="Hello")]),
-        ])
+        conv = Conversation(
+            messages=[
+                SystemMessage(
+                    role=Role.SYSTEM, content=[TextBlock(text="System prompt")]
+                ),
+                UserMessage(role=Role.USER, content=[TextBlock(text="Hello")]),
+            ]
+        )
         assert len(conv.messages) == 2
 
     def test_conversation_append(self):

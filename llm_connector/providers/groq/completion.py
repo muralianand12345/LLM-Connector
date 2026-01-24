@@ -1,10 +1,43 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, AsyncGenerator, Optional, List, Union, Generator, TYPE_CHECKING
+from typing import (
+    Any,
+    Dict,
+    AsyncGenerator,
+    Optional,
+    List,
+    Union,
+    Generator,
+    TYPE_CHECKING,
+)
 
-from ...exceptions import APIError, AuthenticationError, RateLimitError, InvalidRequestError, ContentFilterError, ContextLengthExceededError
-from ...base import ChatCompletion, AsyncChatCompletion, ChatResponses, ChatStreamChunks, Usage, ToolCallDelta, Message, ToolCall, TextBlock, ImageBlock, DocumentBlock, SystemMessage, UserMessage, AssistantMessage, ToolMessage, Role
+from ...exceptions import (
+    APIError,
+    AuthenticationError,
+    RateLimitError,
+    InvalidRequestError,
+    ContentFilterError,
+    ContextLengthExceededError,
+)
+from ...base import (
+    ChatCompletion,
+    AsyncChatCompletion,
+    ChatResponses,
+    ChatStreamChunks,
+    Usage,
+    ToolCallDelta,
+    Message,
+    ToolCall,
+    TextBlock,
+    ImageBlock,
+    DocumentBlock,
+    SystemMessage,
+    UserMessage,
+    AssistantMessage,
+    ToolMessage,
+    Role,
+)
 
 if TYPE_CHECKING:
     from groq import Groq
@@ -39,8 +72,13 @@ class GroqChatResponses(ChatResponses):
                 ToolCall(
                     id=tc.id,
                     name=tc.function.name,
-                    arguments=json.loads(tc.function.arguments) if tc.function.arguments else {},
-                ) for tc in self._choice.message.tool_calls
+                    arguments=(
+                        json.loads(tc.function.arguments)
+                        if tc.function.arguments
+                        else {}
+                    ),
+                )
+                for tc in self._choice.message.tool_calls
             ]
         return None
 
@@ -94,8 +132,13 @@ class GroqAsyncChatResponses(ChatResponses):
                 ToolCall(
                     id=tc.id,
                     name=tc.function.name,
-                    arguments=json.loads(tc.function.arguments) if tc.function.arguments else {},
-                ) for tc in self._choice.message.tool_calls
+                    arguments=(
+                        json.loads(tc.function.arguments)
+                        if tc.function.arguments
+                        else {}
+                    ),
+                )
+                for tc in self._choice.message.tool_calls
             ]
         return None
 
@@ -151,7 +194,8 @@ class GroqChatStreamChunks(ChatStreamChunks):
                     id=tc.id,
                     name=tc.function.name if tc.function else None,
                     arguments=tc.function.arguments if tc.function else None,
-                ) for tc in self._choice.delta.tool_calls
+                )
+                for tc in self._choice.delta.tool_calls
             ]
         return None
 
@@ -163,13 +207,17 @@ class GroqChatStreamChunks(ChatStreamChunks):
 
     @property
     def usage(self) -> Optional[Usage]:
-        if hasattr(self._chunk, 'usage') and self._chunk.usage:
+        if hasattr(self._chunk, "usage") and self._chunk.usage:
             return Usage(
                 prompt_tokens=self._chunk.usage.prompt_tokens,
                 completion_tokens=self._chunk.usage.completion_tokens,
                 total_tokens=self._chunk.usage.total_tokens,
             )
-        if hasattr(self._chunk, 'x_groq') and self._chunk.x_groq and hasattr(self._chunk.x_groq, 'usage'):
+        if (
+            hasattr(self._chunk, "x_groq")
+            and self._chunk.x_groq
+            and hasattr(self._chunk.x_groq, "usage")
+        ):
             usage_data = self._chunk.x_groq.usage
             return Usage(
                 prompt_tokens=usage_data.prompt_tokens,
@@ -214,7 +262,8 @@ class GroqAsyncChatStreamChunks(ChatStreamChunks):
                     id=tc.id,
                     name=tc.function.name if tc.function else None,
                     arguments=tc.function.arguments if tc.function else None,
-                ) for tc in self._choice.delta.tool_calls
+                )
+                for tc in self._choice.delta.tool_calls
             ]
         return None
 
@@ -226,13 +275,17 @@ class GroqAsyncChatStreamChunks(ChatStreamChunks):
 
     @property
     def usage(self) -> Optional[Usage]:
-        if hasattr(self._chunk, 'usage') and self._chunk.usage:
+        if hasattr(self._chunk, "usage") and self._chunk.usage:
             return Usage(
                 prompt_tokens=self._chunk.usage.prompt_tokens,
                 completion_tokens=self._chunk.usage.completion_tokens,
                 total_tokens=self._chunk.usage.total_tokens,
             )
-        if hasattr(self._chunk, 'x_groq') and self._chunk.x_groq and hasattr(self._chunk.x_groq, 'usage'):
+        if (
+            hasattr(self._chunk, "x_groq")
+            and self._chunk.x_groq
+            and hasattr(self._chunk.x_groq, "usage")
+        ):
             usage_data = self._chunk.x_groq.usage
             return Usage(
                 prompt_tokens=usage_data.prompt_tokens,
@@ -255,7 +308,17 @@ class GroqChatCompletion(ChatCompletion):
     def __init__(self, client: "Groq") -> None:
         self._client = client
 
-    def invoke(self, *, messages: Union[str, Message, List[Message]], tools: Optional[List[Dict[str, Any]]] = None, model: Optional[str] = None, temperature: Optional[float] = None, max_tokens: Optional[int] = None, stream: bool = False, **kwargs: Any) -> Union[GroqChatResponses, Generator[GroqChatStreamChunks, None, None]]:
+    def invoke(
+        self,
+        *,
+        messages: Union[str, Message, List[Message]],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        model: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        stream: bool = False,
+        **kwargs: Any,
+    ) -> Union[GroqChatResponses, Generator[GroqChatStreamChunks, None, None]]:
         formatted_messages = self._format_messages(messages)
         request_params: Dict[str, Any] = {
             "model": model or self.DEFAULT_MODEL,
@@ -282,7 +345,9 @@ class GroqChatCompletion(ChatCompletion):
         except Exception as e:
             raise self._handle_exception(e)
 
-    def _stream(self, request_params: Dict[str, Any]) -> Generator[GroqChatStreamChunks, None, None]:
+    def _stream(
+        self, request_params: Dict[str, Any]
+    ) -> Generator[GroqChatStreamChunks, None, None]:
         try:
             response = self._client.chat.completions.create(**request_params)
             for chunk in response:
@@ -290,7 +355,9 @@ class GroqChatCompletion(ChatCompletion):
         except Exception as e:
             raise self._handle_exception(e)
 
-    def _format_messages(self, messages: Union[str, Message, List[Message]]) -> List[Dict[str, Any]]:
+    def _format_messages(
+        self, messages: Union[str, Message, List[Message]]
+    ) -> List[Dict[str, Any]]:
         if isinstance(messages, str):
             return [{"role": "user", "content": messages}]
         if not isinstance(messages, list):
@@ -312,25 +379,45 @@ class GroqChatCompletion(ChatCompletion):
                 result["content"] = " ".join(block.text for block in msg.content)
             if msg.tool_calls:
                 result["tool_calls"] = [
-                    {"id": tc.id, "type": "function", "function": {"name": tc.name, "arguments": json.dumps(tc.arguments)}}
+                    {
+                        "id": tc.id,
+                        "type": "function",
+                        "function": {
+                            "name": tc.name,
+                            "arguments": json.dumps(tc.arguments),
+                        },
+                    }
                     for tc in msg.tool_calls
                 ]
             return result
         elif isinstance(msg, ToolMessage):
             content = " ".join(block.text for block in msg.content)
-            return {"role": "tool", "tool_call_id": msg.tool_call_id, "content": content}
+            return {
+                "role": "tool",
+                "tool_call_id": msg.tool_call_id,
+                "content": content,
+            }
         else:
             raise InvalidRequestError(f"Unknown message type: {type(msg)}")
 
-    def _format_content_blocks(self, content: List[Union[TextBlock, ImageBlock, DocumentBlock]]) -> List[Dict[str, Any]]:
+    def _format_content_blocks(
+        self, content: List[Union[TextBlock, ImageBlock, DocumentBlock]]
+    ) -> List[Dict[str, Any]]:
         formatted = []
         for block in content:
             if isinstance(block, TextBlock):
                 formatted.append({"type": "text", "text": block.text})
             elif isinstance(block, ImageBlock):
-                formatted.append({"type": "image_url", "image_url": {"url": block.url, "detail": block.detail}})
+                formatted.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": block.url, "detail": block.detail},
+                    }
+                )
             elif isinstance(block, DocumentBlock):
-                formatted.append({"type": "text", "text": f"[Document: {json.dumps(block.data)}]"})
+                formatted.append(
+                    {"type": "text", "text": f"[Document: {json.dumps(block.data)}]"}
+                )
         return formatted
 
     def _format_tools(self, tools: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -361,11 +448,18 @@ class GroqChatCompletion(ChatCompletion):
             error_msg = str(e).lower()
             if "context_length" in error_msg or "maximum context length" in error_msg:
                 return ContextLengthExceededError(str(e))
-            if "content_filter" in error_msg or "content management policy" in error_msg:
+            if (
+                "content_filter" in error_msg
+                or "content management policy" in error_msg
+            ):
                 return ContentFilterError(str(e))
             return InvalidRequestError(str(e))
         elif isinstance(e, groq.APIError):
-            return APIError(str(e), status_code=getattr(e, "status_code", None), response=getattr(e, "response", None))
+            return APIError(
+                str(e),
+                status_code=getattr(e, "status_code", None),
+                response=getattr(e, "response", None),
+            )
         else:
             return APIError(str(e))
 
@@ -378,7 +472,17 @@ class GroqAsyncChatCompletion(AsyncChatCompletion):
     def __init__(self, client: "AsyncGroq") -> None:
         self._client = client
 
-    async def invoke(self, *, messages: Union[str, Message, List[Message]], tools: Optional[List[Dict[str, Any]]] = None, model: Optional[str] = None, temperature: Optional[float] = None, max_tokens: Optional[int] = None, stream: bool = False, **kwargs: Any) -> Union[GroqAsyncChatResponses, AsyncGenerator[GroqAsyncChatStreamChunks, None]]:
+    async def invoke(
+        self,
+        *,
+        messages: Union[str, Message, List[Message]],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        model: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        stream: bool = False,
+        **kwargs: Any,
+    ) -> Union[GroqAsyncChatResponses, AsyncGenerator[GroqAsyncChatStreamChunks, None]]:
         formatted_messages = self._format_messages(messages)
         request_params: Dict[str, Any] = {
             "model": model or self.DEFAULT_MODEL,
@@ -405,7 +509,9 @@ class GroqAsyncChatCompletion(AsyncChatCompletion):
         except Exception as e:
             raise self._handle_exception(e)
 
-    async def _stream(self, request_params: Dict[str, Any]) -> AsyncGenerator[GroqAsyncChatStreamChunks, None]:
+    async def _stream(
+        self, request_params: Dict[str, Any]
+    ) -> AsyncGenerator[GroqAsyncChatStreamChunks, None]:
         try:
             response = await self._client.chat.completions.create(**request_params)
             async for chunk in response:
@@ -413,7 +519,9 @@ class GroqAsyncChatCompletion(AsyncChatCompletion):
         except Exception as e:
             raise self._handle_exception(e)
 
-    def _format_messages(self, messages: Union[str, Message, List[Message]]) -> List[Dict[str, Any]]:
+    def _format_messages(
+        self, messages: Union[str, Message, List[Message]]
+    ) -> List[Dict[str, Any]]:
         if isinstance(messages, str):
             return [{"role": "user", "content": messages}]
         if not isinstance(messages, list):
@@ -435,25 +543,45 @@ class GroqAsyncChatCompletion(AsyncChatCompletion):
                 result["content"] = " ".join(block.text for block in msg.content)
             if msg.tool_calls:
                 result["tool_calls"] = [
-                    {"id": tc.id, "type": "function", "function": {"name": tc.name, "arguments": json.dumps(tc.arguments)}}
+                    {
+                        "id": tc.id,
+                        "type": "function",
+                        "function": {
+                            "name": tc.name,
+                            "arguments": json.dumps(tc.arguments),
+                        },
+                    }
                     for tc in msg.tool_calls
                 ]
             return result
         elif isinstance(msg, ToolMessage):
             content = " ".join(block.text for block in msg.content)
-            return {"role": "tool", "tool_call_id": msg.tool_call_id, "content": content}
+            return {
+                "role": "tool",
+                "tool_call_id": msg.tool_call_id,
+                "content": content,
+            }
         else:
             raise InvalidRequestError(f"Unknown message type: {type(msg)}")
 
-    def _format_content_blocks(self, content: List[Union[TextBlock, ImageBlock, DocumentBlock]]) -> List[Dict[str, Any]]:
+    def _format_content_blocks(
+        self, content: List[Union[TextBlock, ImageBlock, DocumentBlock]]
+    ) -> List[Dict[str, Any]]:
         formatted = []
         for block in content:
             if isinstance(block, TextBlock):
                 formatted.append({"type": "text", "text": block.text})
             elif isinstance(block, ImageBlock):
-                formatted.append({"type": "image_url", "image_url": {"url": block.url, "detail": block.detail}})
+                formatted.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": block.url, "detail": block.detail},
+                    }
+                )
             elif isinstance(block, DocumentBlock):
-                formatted.append({"type": "text", "text": f"[Document: {json.dumps(block.data)}]"})
+                formatted.append(
+                    {"type": "text", "text": f"[Document: {json.dumps(block.data)}]"}
+                )
         return formatted
 
     def _format_tools(self, tools: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -484,10 +612,17 @@ class GroqAsyncChatCompletion(AsyncChatCompletion):
             error_msg = str(e).lower()
             if "context_length" in error_msg or "maximum context length" in error_msg:
                 return ContextLengthExceededError(str(e))
-            if "content_filter" in error_msg or "content management policy" in error_msg:
+            if (
+                "content_filter" in error_msg
+                or "content management policy" in error_msg
+            ):
                 return ContentFilterError(str(e))
             return InvalidRequestError(str(e))
         elif isinstance(e, groq.APIError):
-            return APIError(str(e), status_code=getattr(e, "status_code", None), response=getattr(e, "response", None))
+            return APIError(
+                str(e),
+                status_code=getattr(e, "status_code", None),
+                response=getattr(e, "response", None),
+            )
         else:
             return APIError(str(e))

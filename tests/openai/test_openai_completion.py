@@ -24,7 +24,7 @@ class TestOpenAIChatResponses:
     def test_response_properties(self, sample_chat_response):
         """Test response properties are accessible."""
         response = OpenAIChatResponses(sample_chat_response)
-        
+
         assert response.id == "chatcmpl-123"
         assert response.model == "gpt-4o-mini"
         assert response.content == "Hello! How can I help you?"
@@ -36,7 +36,7 @@ class TestOpenAIChatResponses:
     def test_response_with_tool_calls(self, sample_tool_call_response):
         """Test response with tool calls."""
         response = OpenAIChatResponses(sample_tool_call_response)
-        
+
         assert response.content is None
         assert response.tool_calls is not None
         assert len(response.tool_calls) == 1
@@ -55,7 +55,7 @@ class TestOpenAIChatStreamChunks:
     def test_chunk_properties(self, sample_stream_chunks):
         """Test chunk properties."""
         chunk = OpenAIChatStreamChunks(sample_stream_chunks[0])
-        
+
         assert chunk.id == "chatcmpl-123"
         assert chunk.model == "gpt-4o-mini"
         assert chunk.delta_content == "Hello"
@@ -65,7 +65,7 @@ class TestOpenAIChatStreamChunks:
     def test_final_chunk_with_usage(self, sample_stream_chunks):
         """Test final chunk has usage info."""
         chunk = OpenAIChatStreamChunks(sample_stream_chunks[1])
-        
+
         assert chunk.delta_content == " World!"
         assert chunk.finish_reason == "stop"
         assert chunk.usage is not None
@@ -79,13 +79,13 @@ class TestOpenAIChatCompletion:
         """Test invoke with string message."""
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = sample_chat_response
-        
+
         completion = OpenAIChatCompletion(mock_client)
         response = completion.invoke(messages="Hello!")
-        
+
         assert isinstance(response, OpenAIChatResponses)
         assert response.content == "Hello! How can I help you?"
-        
+
         # Verify API call
         call_args = mock_client.chat.completions.create.call_args
         assert call_args.kwargs["messages"] == [{"role": "user", "content": "Hello!"}]
@@ -94,27 +94,29 @@ class TestOpenAIChatCompletion:
         """Test invoke with Message object."""
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = sample_chat_response
-        
+
         completion = OpenAIChatCompletion(mock_client)
         message = UserMessage(role=Role.USER, content=[TextBlock(text="Hello!")])
         response = completion.invoke(messages=message)
-        
+
         assert isinstance(response, OpenAIChatResponses)
 
     def test_invoke_with_message_list(self, sample_chat_response):
         """Test invoke with list of messages."""
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = sample_chat_response
-        
+
         completion = OpenAIChatCompletion(mock_client)
         messages = [
-            SystemMessage(role=Role.SYSTEM, content=[TextBlock(text="You are helpful.")]),
+            SystemMessage(
+                role=Role.SYSTEM, content=[TextBlock(text="You are helpful.")]
+            ),
             UserMessage(role=Role.USER, content=[TextBlock(text="Hello!")]),
         ]
         response = completion.invoke(messages=messages)
-        
+
         assert isinstance(response, OpenAIChatResponses)
-        
+
         # Verify messages were formatted correctly
         call_args = mock_client.chat.completions.create.call_args
         formatted = call_args.kwargs["messages"]
@@ -125,10 +127,10 @@ class TestOpenAIChatCompletion:
         """Test invoke with custom model."""
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = sample_chat_response
-        
+
         completion = OpenAIChatCompletion(mock_client)
         completion.invoke(messages="Hello!", model="gpt-4")
-        
+
         call_args = mock_client.chat.completions.create.call_args
         assert call_args.kwargs["model"] == "gpt-4"
 
@@ -136,10 +138,10 @@ class TestOpenAIChatCompletion:
         """Test invoke with temperature."""
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = sample_chat_response
-        
+
         completion = OpenAIChatCompletion(mock_client)
         completion.invoke(messages="Hello!", temperature=0.5)
-        
+
         call_args = mock_client.chat.completions.create.call_args
         assert call_args.kwargs["temperature"] == 0.5
 
@@ -147,10 +149,10 @@ class TestOpenAIChatCompletion:
         """Test invoke with max_tokens."""
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = sample_chat_response
-        
+
         completion = OpenAIChatCompletion(mock_client)
         completion.invoke(messages="Hello!", max_tokens=100)
-        
+
         call_args = mock_client.chat.completions.create.call_args
         assert call_args.kwargs["max_tokens"] == 100
 
@@ -158,19 +160,19 @@ class TestOpenAIChatCompletion:
         """Test invoke with tools."""
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = sample_tool_call_response
-        
+
         completion = OpenAIChatCompletion(mock_client)
         tools = [
             {
                 "name": "get_weather",
                 "description": "Get weather",
-                "parameters": {"type": "object", "properties": {}}
+                "parameters": {"type": "object", "properties": {}},
             }
         ]
         response = completion.invoke(messages="What's the weather?", tools=tools)
-        
+
         assert response.tool_calls is not None
-        
+
         call_args = mock_client.chat.completions.create.call_args
         assert "tools" in call_args.kwargs
 
@@ -178,10 +180,10 @@ class TestOpenAIChatCompletion:
         """Test streaming invoke."""
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = iter(sample_stream_chunks)
-        
+
         completion = OpenAIChatCompletion(mock_client)
         stream = completion.invoke(messages="Hello!", stream=True)
-        
+
         chunks = list(stream)
         assert len(chunks) == 2
         assert chunks[0].delta_content == "Hello"
@@ -191,17 +193,17 @@ class TestOpenAIChatCompletion:
         """Test formatting multimodal user message."""
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = sample_chat_response
-        
+
         completion = OpenAIChatCompletion(mock_client)
         message = UserMessage(
             role=Role.USER,
             content=[
                 TextBlock(text="What's in this image?"),
                 ImageBlock(url="https://example.com/image.png", detail="high"),
-            ]
+            ],
         )
         completion.invoke(messages=message)
-        
+
         call_args = mock_client.chat.completions.create.call_args
         formatted = call_args.kwargs["messages"][0]
         assert formatted["role"] == "user"
@@ -214,24 +216,26 @@ class TestOpenAIChatCompletion:
         """Test formatting assistant message with tool calls."""
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = sample_chat_response
-        
+
         completion = OpenAIChatCompletion(mock_client)
         messages = [
             AssistantMessage(
                 role=Role.ASSISTANT,
-                tool_calls=[ToolCall(id="call_1", name="get_weather", arguments={"loc": "NYC"})]
+                tool_calls=[
+                    ToolCall(id="call_1", name="get_weather", arguments={"loc": "NYC"})
+                ],
             ),
             ToolMessage(
                 role=Role.TOOL,
                 tool_call_id="call_1",
-                content=[TextBlock(text='{"temp": 72}')]
+                content=[TextBlock(text='{"temp": 72}')],
             ),
         ]
         completion.invoke(messages=messages)
-        
+
         call_args = mock_client.chat.completions.create.call_args
         formatted = call_args.kwargs["messages"]
-        
+
         assert formatted[0]["role"] == "assistant"
         assert "tool_calls" in formatted[0]
         assert formatted[1]["role"] == "tool"
@@ -241,11 +245,13 @@ class TestOpenAIChatCompletion:
         """Test developer role is formatted correctly."""
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = sample_chat_response
-        
+
         completion = OpenAIChatCompletion(mock_client)
-        message = SystemMessage(role=Role.DEVELOPER, content=[TextBlock(text="Dev instructions")])
+        message = SystemMessage(
+            role=Role.DEVELOPER, content=[TextBlock(text="Dev instructions")]
+        )
         completion.invoke(messages=message)
-        
+
         call_args = mock_client.chat.completions.create.call_args
         formatted = call_args.kwargs["messages"][0]
         assert formatted["role"] == "developer"
