@@ -68,18 +68,25 @@ class GroqChatResponses(ChatResponses):
     @property
     def tool_calls(self) -> Optional[List[ToolCall]]:
         if self._choice and self._choice.message and self._choice.message.tool_calls:
-            return [
-                ToolCall(
-                    id=tc.id,
-                    name=tc.function.name,
-                    arguments=(
+            result = []
+            for tc in self._choice.message.tool_calls:
+                try:
+                    arguments = (
                         json.loads(tc.function.arguments)
                         if tc.function.arguments
                         else {}
-                    ),
+                    )
+                except json.JSONDecodeError:
+                    arguments = {}
+
+                result.append(
+                    ToolCall(
+                        id=tc.id,
+                        name=tc.function.name,
+                        arguments=arguments,
+                    )
                 )
-                for tc in self._choice.message.tool_calls
-            ]
+            return result
         return None
 
     @property
@@ -217,6 +224,7 @@ class GroqChatStreamChunks(ChatStreamChunks):
             hasattr(self._chunk, "x_groq")
             and self._chunk.x_groq
             and hasattr(self._chunk.x_groq, "usage")
+            and self._chunk.x_groq.usage
         ):
             usage_data = self._chunk.x_groq.usage
             return Usage(

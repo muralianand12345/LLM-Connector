@@ -297,11 +297,13 @@ class TestGroqChatCompletion:
 
     def test_error_handling(self):
         """Test error handling for Groq exceptions."""
+        pytest.importorskip("groq")  # Skip test if groq is not installed
+
+        import groq
+
         mock_client = MagicMock()
 
         # Mock Groq exception
-        import groq
-
         mock_client.chat.completions.create.side_effect = groq.RateLimitError(
             "Rate limited"
         )
@@ -345,6 +347,8 @@ def sample_stream_chunks():
     chunk1.choices[0].delta.tool_calls = None
     chunk1.choices[0].finish_reason = None
     chunk1.usage = None
+    # Ensure x_groq doesn't exist
+    chunk1.configure_mock(**{"x_groq": MagicMock(side_effect=AttributeError)})
     chunks.append(chunk1)
 
     # Second chunk

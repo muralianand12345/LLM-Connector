@@ -269,6 +269,8 @@ def sample_stream_chunks():
     chunk1.choices[0].delta.tool_calls = None
     chunk1.choices[0].finish_reason = None
     chunk1.usage = None
+    # Ensure x_groq doesn't exist or is None
+    del chunk1.x_groq
     chunks.append(chunk1)
 
     # Second chunk
