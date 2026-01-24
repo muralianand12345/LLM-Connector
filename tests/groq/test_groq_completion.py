@@ -339,7 +339,7 @@ def sample_stream_chunks():
     chunks = []
 
     # First chunk
-    chunk1 = MagicMock()
+    chunk1 = MagicMock(spec=['id', 'model', 'choices', 'usage'])
     chunk1.id = "chatcmpl-123"
     chunk1.model = "llama-3.3-70b-versatile"
     chunk1.choices = [MagicMock()]
@@ -347,8 +347,6 @@ def sample_stream_chunks():
     chunk1.choices[0].delta.tool_calls = None
     chunk1.choices[0].finish_reason = None
     chunk1.usage = None
-    # Ensure x_groq doesn't exist
-    chunk1.configure_mock(**{"x_groq": MagicMock(side_effect=AttributeError)})
     chunks.append(chunk1)
 
     # Second chunk
