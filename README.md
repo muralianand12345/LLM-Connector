@@ -11,17 +11,39 @@ pip install llm-connector
 # With OpenAI support
 pip install llm-connector[openai]
 
+# With Groq support
+pip install llm-connector[groq]
+
 # With all providers
 pip install llm-connector[all]
 ```
 
 ## Quick Start
 
+### OpenAI
+
 ```python
 from llm_connector import ConnectorFactory
 
 # Create a connector
 connector = ConnectorFactory.create("openai", config={"api_key": "your-api-key"})
+
+# Chat completion
+response = connector.chat().invoke(messages="Hello, how are you?")
+print(response.content)
+
+# Streaming
+for chunk in connector.chat().invoke(messages="Tell me a story", stream=True):
+    print(chunk.delta_content, end="", flush=True)
+```
+
+### Groq
+
+```python
+from llm_connector import ConnectorFactory
+
+# Create a connector
+connector = ConnectorFactory.create("groq", config={"api_key": "your-groq-api-key"})
 
 # Chat completion
 response = connector.chat().invoke(messages="Hello, how are you?")
@@ -40,14 +62,15 @@ for chunk in connector.chat().invoke(messages="Tell me a story", stream=True):
 - **Batch Processing**: Batch API support for bulk operations
 - **File API**: File upload and management
 - **Type Safety**: Full type hints and Pydantic models
+- **Async Support**: Full async/await support for all operations
 
 ## Supported Providers
 
 | Provider | Status | Installation |
 |----------|--------|--------------|
 | OpenAI | ✅ Supported | `pip install llm-connector[openai]` |
+| Groq | ✅ Supported | `pip install llm-connector[groq]` |
 | Anthropic | 🚧 Coming Soon | - |
-| Groq | 🚧 Coming Soon | - |
 
 ## Usage Examples
 
@@ -56,19 +79,50 @@ for chunk in connector.chat().invoke(messages="Tell me a story", stream=True):
 ```python
 from llm_connector import ConnectorFactory
 
+# OpenAI
 connector = ConnectorFactory.create("openai", config={
     "api_key": "your-api-key",
     # Or set OPENAI_API_KEY environment variable
 })
 
+# Groq
+connector = ConnectorFactory.create("groq", config={
+    "api_key": "your-groq-api-key",
+    # Or set GROQ_API_KEY environment variable
+})
+
 response = connector.chat().invoke(
     messages="What is the capital of France?",
-    model="gpt-4o-mini",
+    model="gpt-4o-mini",  # or "llama-3.3-70b-versatile" for Groq
     temperature=0.7,
 )
 
 print(response.content)
 print(f"Tokens used: {response.usage.total_tokens}")
+```
+
+### Async Chat
+
+```python
+import asyncio
+from llm_connector import ConnectorFactory
+
+async def main():
+    connector = ConnectorFactory.create("groq")
+    
+    # Async chat
+    response = await connector.async_chat().invoke(messages="Hello!")
+    print(response.content)
+    
+    # Async streaming
+    stream = await connector.async_chat().invoke(
+        messages="Tell me a story",
+        stream=True
+    )
+    async for chunk in stream:
+        print(chunk.delta_content, end="", flush=True)
+
+asyncio.run(main())
 ```
 
 ### Structured Messages
@@ -157,6 +211,25 @@ if status.status == "completed":
     results = connector.batch().result(batch_request.id)
     for record in results.records:
         print(record)
+```
+
+### File API
+
+```python
+# Upload file
+file_id = connector.file().upload(
+    file=b'{"test": "data"}',
+    purpose="batch"
+)
+
+# Retrieve metadata
+file_info = connector.file().retrieve(file_id=file_id)
+
+# Download content
+content = connector.file().download(file_id=file_id)
+
+# Delete file
+connector.file().delete(file_id=file_id)
 ```
 
 ## Custom Providers

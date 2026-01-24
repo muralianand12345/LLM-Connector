@@ -16,6 +16,7 @@ keywords = [
     "llm",
     "openai",
     "anthropic",
+    "groq",
     "ai",
     "machine-learning",
     "chatgpt",
@@ -43,10 +44,14 @@ dependencies = [
 
 [project.optional-dependencies]
 openai = [
-    "openai>=1.0.0",
+    "openai>=2.15.0",
+]
+groq = [
+    "groq>=1.0.0",
 ]
 all = [
-    "openai>=1.0.0",
+    "groq>=1.0.0",
+    "openai>=2.15.0",
 ]
 
 [project.urls]
