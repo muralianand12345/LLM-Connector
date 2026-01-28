@@ -65,3 +65,8 @@ class FileError(Exception):
     """Raised when file operations fail."""
 
     pass
+
+class NotImplementedError(Exception):
+    """Raised when a requested operation is not implemented."""
+
+    pass

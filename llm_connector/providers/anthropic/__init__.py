@@ -92,7 +92,7 @@ class AnthropicConnector(LLMConnector):
                 "Set it via config['api_key'] or ANTHROPIC_API_KEY environment variable."
             )
 
-    def _get_async_client(self) -> "AsyncAnthropic":
+    def _get_async_client(self) -> "AsyncAnthropic": # type: ignore
         """Get or create the async client (lazy initialization)."""
         if self._async_client is None:
             self._async_client = AsyncAnthropic(**self._client_kwargs)  # type: ignore
