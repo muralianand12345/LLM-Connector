@@ -83,7 +83,7 @@ class GroqFileAPI(FileAPI):
         """
         try:
             response = self._client.files.content(file_id)
-            return response
+            return response.content
         except Exception as e:
             raise self._handle_exception(e)
 
@@ -222,7 +222,7 @@ class GroqAsyncFileAPI(AsyncFileAPI):
         """
         try:
             response = await self._client.files.content(file_id)
-            return response
+            return response.content
         except Exception as e:
             raise self._handle_exception(e)
 

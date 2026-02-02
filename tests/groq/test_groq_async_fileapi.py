@@ -24,7 +24,7 @@ class TestGroqAsyncFileAPI:
     async def test_retrieve(self, sample_file_object):
         """Test retrieving file metadata asynchronously."""
         mock_client = MagicMock()
-        mock_client.files.retrieve = AsyncMock(return_value=sample_file_object)
+        mock_client.files.info = AsyncMock(return_value=sample_file_object)
 
         file_api = GroqAsyncFileAPI(mock_client)
         result = await file_api.retrieve(file_id="file-abc123")
@@ -89,7 +89,7 @@ class TestGroqAsyncFileAPI:
     async def test_error_handling_generic_exception(self):
         """Test FileError on generic exception."""
         mock_client = MagicMock()
-        mock_client.files.retrieve = AsyncMock(
+        mock_client.files.info = AsyncMock(
             side_effect=Exception("Something went wrong")
         )
 
@@ -113,7 +113,7 @@ class TestGroqAsyncFileAPI:
         # No status attribute
         del mock_response.status
 
-        mock_client.files.retrieve = AsyncMock(return_value=mock_response)
+        mock_client.files.info = AsyncMock(return_value=mock_response)
 
         file_api = GroqAsyncFileAPI(mock_client)
         result = await file_api.retrieve(file_id="file-123")

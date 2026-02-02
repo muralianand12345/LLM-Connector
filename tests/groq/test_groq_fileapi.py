@@ -45,7 +45,7 @@ class TestGroqFileAPI:
     def test_retrieve(self, sample_file_object):
         """Test retrieving file metadata."""
         mock_client = MagicMock()
-        mock_client.files.retrieve.return_value = sample_file_object
+        mock_client.files.info.return_value = sample_file_object
 
         file_api = GroqFileAPI(mock_client)
         result = file_api.retrieve(file_id="file-abc123")
@@ -104,7 +104,7 @@ class TestGroqFileAPI:
     def test_error_handling_generic_exception(self):
         """Test FileError on generic exception."""
         mock_client = MagicMock()
-        mock_client.files.retrieve.side_effect = Exception("Something went wrong")
+        mock_client.files.info.side_effect = Exception("Something went wrong")
 
         file_api = GroqFileAPI(mock_client)
 
@@ -125,7 +125,7 @@ class TestGroqFileAPI:
         # No status attribute
         del mock_response.status
 
-        mock_client.files.retrieve.return_value = mock_response
+        mock_client.files.info.return_value = mock_response
 
         file_api = GroqFileAPI(mock_client)
         result = file_api.retrieve(file_id="file-123")
